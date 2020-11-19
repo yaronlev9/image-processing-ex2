@@ -36,7 +36,7 @@ def read_image(filename, representation):
 
 
 def DFT(signal):
-    n, m = signal.shape
+    n = signal.shape[0]
     size = np.arange(n)
     u = np.meshgrid(size, size)[1]
     exponent_signal = np.exp(-(FOURIER_CONST * u * size / n))
@@ -46,7 +46,7 @@ def DFT(signal):
 
 
 def IDFT(fourier_signal):
-    n, m = fourier_signal.shape
+    n = fourier_signal.shape[0]
     size = np.arange(n)
     u = np.meshgrid(size, size)[1]
     exponent_signal = np.exp(FOURIER_CONST * u * size / n)
@@ -207,8 +207,6 @@ def phase_vocoder(spec, ratio):
 
 
 #tests
-# x = np.hstack([np.repeat(np.arange(0,50,2),10)[None,:], np.array([255]*6)[None,:]])
-# grad = np.tile(x,(256,1))/255
 
 # im = read_image('externals/monkey.jpg', 1)
 # temp_im = DFT2(im)
@@ -232,19 +230,17 @@ def phase_vocoder(spec, ratio):
 # plt.title('magnitude Spectrum2'), plt.xticks([]), plt.yticks([])
 # plt.show()
 
-
+# x = np.hstack([np.repeat(np.arange(0,50,2),10)[None,:], np.array([255]*6)[None,:]])
+# grad = np.tile(x,(256,1))/255
+#
 # im = grad
 # fft = np.fft.fft2(im)
-# print(fft)
 # dft = DFT2(im)
 # print("------------------------------------------------")
-# print(dft)
 # print(np.allclose(fft, dft))
 # ifft = np.fft.ifft2(fft)
-# print(ifft)
 # print("-------------------------------------------")
 # idft = IDFT2(dft)
-# print(idft)
 # print(np.allclose(ifft, idft))
 
 #rates
