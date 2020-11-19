@@ -57,7 +57,6 @@ def IDFT(fourier_signal):
     exponent_signal = np.exp(FOURIER_CONST * u * size / n)
     exponent_signal *= fourier_signal
     signal = np.sum(exponent_signal, axis=1) / n
-    # return np.real(signal)
     return signal
 
 
@@ -91,17 +90,17 @@ def change_samples(filename, ratio):
 
 
 def resize(data, ratio):
-    newSize = int(np.floor(len(data) / ratio))
+    new_size = int(np.floor(len(data) / ratio))
     fourier_data = np.fft.fftshift(DFT(data))
-    if newSize > len(data):
-        to_add = newSize - len(data)
+    if new_size > len(data):
+        to_add = new_size - len(data)
         left_size = to_add // 2
         right_size = to_add - left_size
         new_data = np.zeros(left_size)
         new_data = np.append(new_data, fourier_data)
         new_data = np.append(new_data, np.zeros(right_size))
         return np.real(IDFT(np.fft.ifftshift(new_data)))
-    to_del = len(data) - newSize
+    to_del = len(data) - new_size
     left_index = to_del // 2
     right_index = to_del - left_index
     new_data = fourier_data[left_index: len(fourier_data) - right_index]
@@ -110,12 +109,43 @@ def resize(data, ratio):
 
 def resize_spectrogram(data, ratio):
     spectogram = stft(data)
-    newSize = int(np.floor(spectogram.shape[1] / ratio))
-    new_spectogram = np.zeros((spectogram.shape[0], newSize))
+    new_size = int(np.floor(spectogram.shape[1] / ratio))
+    new_spectogram = np.zeros((spectogram.shape[0], new_size))
     for row in range(len(spectogram)):
         new_spectogram[row] = resize(spectogram[row], ratio)
-    res = istft(new_spectogram)
-    return res
+    return istft(new_spectogram)
+
+
+def resize_vocoder(data, ratio):
+    spectogram = stft(data)
+    return istft(phase_vocoder(spectogram, ratio))
+
+
+def conv_der(im):
+    div = np.array([0.5, 0, -0.5]).reshape(3, 1)
+    diff_x = convolve2d(im, div, mode="same", boundary="symm")
+    diff_y = convolve2d(im, div.transpose(), mode="same", boundary="symm")
+    return calc_magnitude(diff_x, diff_y)
+
+
+def fourier_der(im):
+    fourier = DFT2(im)
+    diff_x = get_der(fourier)
+    trans_fourier = fourier.transpose()
+    diff_y = get_der(trans_fourier).transpose()
+    return calc_magnitude(diff_x, diff_y)
+
+
+def get_der(fourier):
+    n = fourier.shape[0]
+    indexes = np.fft.ifftshift(np.arange(n) - n // 2).reshape(n, 1)
+    diff = IDFT2(indexes * fourier)
+    diff *= FOURIER_CONST / n
+    return diff
+
+
+def calc_magnitude(diff_x, diff_y):
+    return np.sqrt(np.abs(diff_x) ** 2 + np.abs(diff_y) ** 2)
 
 
 def stft(y, win_length=640, hop_length=160):
@@ -222,11 +252,15 @@ def phase_vocoder(spec, ratio):
 # print(np.allclose(ifft, idft))
 
 #rates
-# change_rate('3.wav',1.5)
-# change_samples('3.wav',1.5)
+# change_rate('3.wav', 2)
+# change_samples('3.wav', 2)
 # rate, data = sp.read('3.wav')
-# data = resize_spectrogram(data, 1.5)
+# data = resize_spectrogram(data, 2)
 # sp.write('change_spec.wav', rate, data.astype(np.int16))
+#
+# rate, data = sp.read('3.wav')
+# data = resize_vocoder(data, 2)
+# sp.write('change_spec_phase.wav', rate, data.astype(np.int16))
 
 
 
