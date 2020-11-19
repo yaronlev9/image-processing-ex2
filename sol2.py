@@ -36,7 +36,7 @@ def read_image(filename, representation):
 
 
 def DFT(signal):
-    n, = signal.shape
+    n, m = signal.shape
     size = np.arange(n)
     u = np.meshgrid(size, size)[1]
     exponent_signal = np.exp(-(FOURIER_CONST * u * size / n))
@@ -46,7 +46,7 @@ def DFT(signal):
 
 
 def IDFT(fourier_signal):
-    n, = fourier_signal.shape
+    n, m = fourier_signal.shape
     size = np.arange(n)
     u = np.meshgrid(size, size)[1]
     exponent_signal = np.exp(FOURIER_CONST * u * size / n)
