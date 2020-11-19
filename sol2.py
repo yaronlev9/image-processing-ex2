@@ -42,7 +42,7 @@ def DFT(signal):
     exponent_signal = np.exp(-(FOURIER_CONST * u * size / n))
     exponent_signal *= signal
     fourier = np.sum(exponent_signal, axis=1)
-    return fourier
+    return fourier.reshape(n,1)
 
 
 def IDFT(fourier_signal):
@@ -52,7 +52,7 @@ def IDFT(fourier_signal):
     exponent_signal = np.exp(FOURIER_CONST * u * size / n)
     exponent_signal *= fourier_signal
     signal = np.sum(exponent_signal, axis=1) / n
-    return signal
+    return signal.reshape(n,1)
 
 
 def DFT2(image):
