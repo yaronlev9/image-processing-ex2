@@ -7,17 +7,12 @@ from scipy.signal import convolve2d
 from scipy import signal
 from scipy.ndimage.interpolation import map_coordinates
 
-import sys
-np.set_printoptions(threshold=sys.maxsize)
-
 NUM_OF_PIXELS = 256
 RGB_IMAGE_SHAPE_SIZE = 3
-x = np.hstack([np.repeat(np.arange(0,50,2),10)[None,:], np.array([255]*6)[None,:]])
-grad = np.tile(x,(256,1))/255
-
 FOURIER_CONST = 2j * np.pi
 CHANGE_RATE_FILE = 'change_rate.wav'
 CHANGE_SAMPLES_FILE = 'change_samples.wav'
+DIFF_ARR = np.array([0.5, 0, -0.5]).reshape(3, 1)
 
 def read_image(filename, representation):
     """
@@ -122,9 +117,8 @@ def resize_vocoder(data, ratio):
 
 
 def conv_der(im):
-    div = np.array([0.5, 0, -0.5]).reshape(3, 1)
-    diff_x = convolve2d(im, div, mode="same", boundary="symm")
-    diff_y = convolve2d(im, div.transpose(), mode="same", boundary="symm")
+    diff_x = convolve2d(im, DIFF_ARR, mode="same", boundary="symm")
+    diff_y = convolve2d(im, DIFF_ARR.transpose(), mode="same", boundary="symm")
     return calc_magnitude(diff_x, diff_y)
 
 
@@ -213,6 +207,8 @@ def phase_vocoder(spec, ratio):
 
 
 #tests
+# x = np.hstack([np.repeat(np.arange(0,50,2),10)[None,:], np.array([255]*6)[None,:]])
+# grad = np.tile(x,(256,1))/255
 
 # im = read_image('externals/monkey.jpg', 1)
 # temp_im = DFT2(im)
@@ -252,16 +248,15 @@ def phase_vocoder(spec, ratio):
 # print(np.allclose(ifft, idft))
 
 #rates
-change_rate('3.wav', 0.5)
-change_samples('3.wav', 0.5)
-rate, data = sp.read('3.wav')
-data = resize_spectrogram(data, 0.5)
-sp.write('change_spec.wav', rate, data.astype(np.int16))
-#
-rate, data = sp.read('3.wav')
-data = resize_vocoder(data, 0.5)
-sp.write('change_spec_phase.wav', rate, data.astype(np.int16))
-
+# change_rate('3.wav', 0.5)
+# change_samples('3.wav', 0.5)
+# rate, data = sp.read('3.wav')
+# data = resize_spectrogram(data, 0.5)
+# sp.write('change_spec.wav', rate, data.astype(np.int16))
+# #
+# rate, data = sp.read('3.wav')
+# data = resize_vocoder(data, 0.5)
+# sp.write('change_spec_phase.wav', rate, data.astype(np.int16))
 
 
 
