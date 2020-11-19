@@ -182,8 +182,8 @@ def istft(stft_matrix, win_length=640, hop_length=160):
 
 
 def phase_vocoder(spec, ratio):
-    time_steps = np.arange(spec.shape[1]) * ratio
-    time_steps = time_steps[time_steps < spec.shape[1]]
+    num_timesteps = int(spec.shape[1] / ratio)
+    time_steps = np.arange(num_timesteps) * ratio
 
     # interpolate magnitude
     yy = np.meshgrid(np.arange(time_steps.size), np.arange(spec.shape[0]))[1]
@@ -252,15 +252,15 @@ def phase_vocoder(spec, ratio):
 # print(np.allclose(ifft, idft))
 
 #rates
-# change_rate('3.wav', 2)
-# change_samples('3.wav', 2)
-# rate, data = sp.read('3.wav')
-# data = resize_spectrogram(data, 2)
-# sp.write('change_spec.wav', rate, data.astype(np.int16))
+change_rate('3.wav', 0.5)
+change_samples('3.wav', 0.5)
+rate, data = sp.read('3.wav')
+data = resize_spectrogram(data, 0.5)
+sp.write('change_spec.wav', rate, data.astype(np.int16))
 #
-# rate, data = sp.read('3.wav')
-# data = resize_vocoder(data, 2)
-# sp.write('change_spec_phase.wav', rate, data.astype(np.int16))
+rate, data = sp.read('3.wav')
+data = resize_vocoder(data, 0.5)
+sp.write('change_spec_phase.wav', rate, data.astype(np.int16))
 
 
 
