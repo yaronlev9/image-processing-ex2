@@ -66,9 +66,9 @@ def IDFT2(fourier_image):
 def two_d_fourier(image, func):
     dft = np.zeros(image.shape, dtype=np.complex128)
     for i in range(image.shape[0]):
-        dft[i] = func(image[i])
+        dft[i] = func(image[i]).T
     for i in range(image.shape[1]):
-        dft[0:image.shape[0], i] = func(dft[0:image.shape[0], i])
+        dft[0:image.shape[0], i] = func(dft[0:image.shape[0], i]).T
     return dft
 
 
@@ -208,31 +208,36 @@ def phase_vocoder(spec, ratio):
 
 #tests
 
-# im = read_image('externals/monkey.jpg', 1)
-# temp_im = DFT2(im)
-# fshift = np.fft.fftshift(temp_im)
-# spectrum2 = 20*np.log(1 + np.abs(fshift))
-# new_im = DFT2(temp_im)
-# spectrum1 = 20*np.log(1 + np.abs(new_im))
-# magnitude_spectrum1 = conv_der(im)
-# magnitude_spectrum2 = fourier_der(im)
+im = read_image('externals/monkey.jpg', 1)
+fft = np.fft.fft2(im)
+temp_im = DFT2(im)
+print(np.allclose(fft, temp_im))
+ifft = np.fft.ifft2(fft)
+idft = IDFT2(temp_im)
+print(np.allclose(ifft, idft))
+fshift = np.fft.fftshift(temp_im)
+spectrum2 = 20*np.log(1 + np.abs(fshift))
+new_im = DFT2(temp_im)
+spectrum1 = 20*np.log(1 + np.abs(new_im))
+magnitude_spectrum1 = conv_der(im)
+magnitude_spectrum2 = fourier_der(im)
 
 #plot
-# plt.subplot(321),plt.imshow(im, cmap = 'gray')
-# plt.title('Input Image'), plt.xticks([]), plt.yticks([])
-# plt.subplot(322),plt.imshow(spectrum2, cmap = 'gray')
-# plt.title('fourier'), plt.xticks([]), plt.yticks([])
-# plt.subplot(323),plt.imshow(spectrum1, cmap = 'gray')
-# plt.title('Spectrum'), plt.xticks([]), plt.yticks([])
-# plt.subplot(121),plt.imshow(magnitude_spectrum1, cmap = 'gray')
-# plt.title('magnitude Spectrum1'), plt.xticks([]), plt.yticks([])
-# plt.subplot(122),plt.imshow(magnitude_spectrum2, cmap = 'gray')
-# plt.title('magnitude Spectrum2'), plt.xticks([]), plt.yticks([])
-# plt.show()
+plt.subplot(321),plt.imshow(im, cmap = 'gray')
+plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+plt.subplot(322),plt.imshow(spectrum2, cmap = 'gray')
+plt.title('fourier'), plt.xticks([]), plt.yticks([])
+plt.subplot(323),plt.imshow(spectrum1, cmap = 'gray')
+plt.title('Spectrum'), plt.xticks([]), plt.yticks([])
+plt.subplot(324),plt.imshow(magnitude_spectrum1, cmap = 'gray')
+plt.title('magnitude Spectrum1'), plt.xticks([]), plt.yticks([])
+plt.subplot(325),plt.imshow(magnitude_spectrum2, cmap = 'gray')
+plt.title('magnitude Spectrum2'), plt.xticks([]), plt.yticks([])
+plt.show()
 
 # x = np.hstack([np.repeat(np.arange(0,50,2),10)[None,:], np.array([255]*6)[None,:]])
 # grad = np.tile(x,(256,1))/255
-#
+
 # im = grad
 # fft = np.fft.fft2(im)
 # dft = DFT2(im)
