@@ -1,18 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy.linalg import linalg
 from skimage.color import rgb2gray
 import imageio
 import scipy.io.wavfile as sp
+from scipy.signal import convolve2d
+from scipy import signal
+from scipy.ndimage.interpolation import map_coordinates
+
 import sys
+np.set_printoptions(threshold=sys.maxsize)
 
 NUM_OF_PIXELS = 256
-START_Z_LEVEL = -1
-YIQ_MATRIX = np.array([[0.299, 0.587, 0.114], [0.596, -0.275, -0.321], [0.212, -0.523, 0.311]])
 RGB_IMAGE_SHAPE_SIZE = 3
 x = np.hstack([np.repeat(np.arange(0,50,2),10)[None,:], np.array([255]*6)[None,:]])
 grad = np.tile(x,(256,1))/255
-np.set_printoptions(threshold=sys.maxsize)
 
 FOURIER_CONST = 2j * np.pi
 CHANGE_RATE_FILE = 'change_rate.wav'
@@ -100,16 +101,21 @@ def resize(data, ratio):
         new_data = np.append(new_data, fourier_data)
         new_data = np.append(new_data, np.zeros(right_size))
         return np.real(IDFT(np.fft.ifftshift(new_data)))
-    new_data = np.array([newSize])
     to_del = len(data) - newSize
     left_index = to_del // 2
     right_index = to_del - left_index
-    new_data = np.append(new_data, fourier_data[left_index: len(fourier_data) - (right_index + 1)])
+    new_data = fourier_data[left_index: len(fourier_data) - right_index]
     return np.real(IDFT(np.fft.ifftshift(new_data)))
 
 
-from scipy import signal
-from scipy.ndimage.interpolation import map_coordinates
+def resize_spectrogram(data, ratio):
+    spectogram = stft(data)
+    newSize = int(np.floor(spectogram.shape[1] / ratio))
+    new_spectogram = np.zeros((spectogram.shape[0], newSize))
+    for row in range(len(spectogram)):
+        new_spectogram[row] = resize(spectogram[row], ratio)
+    res = istft(new_spectogram)
+    return res
 
 
 def stft(y, win_length=640, hop_length=160):
@@ -175,9 +181,32 @@ def phase_vocoder(spec, ratio):
 
     return warped_spec
 
-# im = np.exp(2 * np.pi * np.arange(8) / 8)
-# im = np.mgrid[:5, :5][0]
+
+#tests
+
 # im = read_image('externals/monkey.jpg', 1)
+# temp_im = DFT2(im)
+# fshift = np.fft.fftshift(temp_im)
+# spectrum2 = 20*np.log(1 + np.abs(fshift))
+# new_im = DFT2(temp_im)
+# spectrum1 = 20*np.log(1 + np.abs(new_im))
+# magnitude_spectrum1 = conv_der(im)
+# magnitude_spectrum2 = fourier_der(im)
+
+#plot
+# plt.subplot(321),plt.imshow(im, cmap = 'gray')
+# plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+# plt.subplot(322),plt.imshow(spectrum2, cmap = 'gray')
+# plt.title('fourier'), plt.xticks([]), plt.yticks([])
+# plt.subplot(323),plt.imshow(spectrum1, cmap = 'gray')
+# plt.title('Spectrum'), plt.xticks([]), plt.yticks([])
+# plt.subplot(121),plt.imshow(magnitude_spectrum1, cmap = 'gray')
+# plt.title('magnitude Spectrum1'), plt.xticks([]), plt.yticks([])
+# plt.subplot(122),plt.imshow(magnitude_spectrum2, cmap = 'gray')
+# plt.title('magnitude Spectrum2'), plt.xticks([]), plt.yticks([])
+# plt.show()
+
+
 # im = grad
 # fft = np.fft.fft2(im)
 # print(fft)
@@ -191,18 +220,15 @@ def phase_vocoder(spec, ratio):
 # idft = IDFT2(dft)
 # print(idft)
 # print(np.allclose(ifft, idft))
-change_rate('3.wav',2)
-change_samples('3.wav',2)
 
-# im = imageio.imread('externals/monkey.jpg')/255
-# plt.imshow(im, cmap="gray")
-# plt.show()
-# DFT()
-# plt.imshow(im_eq, cmap="gray")
-# plt.show()
-# plt.figure()
-# plt.plot(hist.cumsum())
-# plt.show()
-# plt.figure()
-# plt.plot(new_hist.cumsum())
-# plt.show()
+#rates
+# change_rate('3.wav',1.5)
+# change_samples('3.wav',1.5)
+# rate, data = sp.read('3.wav')
+# data = resize_spectrogram(data, 1.5)
+# sp.write('change_spec.wav', rate, data.astype(np.int16))
+
+
+
+
+
