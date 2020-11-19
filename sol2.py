@@ -107,7 +107,7 @@ def resize_spectrogram(data, ratio):
     new_size = int(np.floor(spectogram.shape[1] / ratio))
     new_spectogram = np.zeros((spectogram.shape[0], new_size))
     for row in range(len(spectogram)):
-        new_spectogram[row] = resize(spectogram[row], ratio)
+        new_spectogram[row] = resize(spectogram[row], ratio).T
     return istft(new_spectogram)
 
 
@@ -208,32 +208,32 @@ def phase_vocoder(spec, ratio):
 
 #tests
 
-im = read_image('externals/monkey.jpg', 1)
-fft = np.fft.fft2(im)
-temp_im = DFT2(im)
-print(np.allclose(fft, temp_im))
-ifft = np.fft.ifft2(fft)
-idft = IDFT2(temp_im)
-print(np.allclose(ifft, idft))
-fshift = np.fft.fftshift(temp_im)
-spectrum2 = 20*np.log(1 + np.abs(fshift))
-new_im = DFT2(temp_im)
-spectrum1 = 20*np.log(1 + np.abs(new_im))
-magnitude_spectrum1 = conv_der(im)
-magnitude_spectrum2 = fourier_der(im)
+# im = read_image('externals/jerusalem.jpg', 1)
+# fft = np.fft.fft2(im)
+# temp_im = DFT2(im)
+# print(np.allclose(fft, temp_im))
+# ifft = np.fft.ifft2(fft)
+# idft = IDFT2(temp_im)
+# print(np.allclose(ifft, idft))
+# fshift = np.fft.fftshift(temp_im)
+# spectrum2 = 20*np.log(1 + np.abs(fshift))
+# new_im = DFT2(temp_im)
+# spectrum1 = 20*np.log(1 + np.abs(new_im))
+# magnitude_spectrum1 = conv_der(im)
+# magnitude_spectrum2 = fourier_der(im)
 
 #plot
-plt.subplot(321),plt.imshow(im, cmap = 'gray')
-plt.title('Input Image'), plt.xticks([]), plt.yticks([])
-plt.subplot(322),plt.imshow(spectrum2, cmap = 'gray')
-plt.title('fourier'), plt.xticks([]), plt.yticks([])
-plt.subplot(323),plt.imshow(spectrum1, cmap = 'gray')
-plt.title('Spectrum'), plt.xticks([]), plt.yticks([])
-plt.subplot(324),plt.imshow(magnitude_spectrum1, cmap = 'gray')
-plt.title('magnitude Spectrum1'), plt.xticks([]), plt.yticks([])
-plt.subplot(325),plt.imshow(magnitude_spectrum2, cmap = 'gray')
-plt.title('magnitude Spectrum2'), plt.xticks([]), plt.yticks([])
-plt.show()
+# plt.subplot(321),plt.imshow(im, cmap = 'gray')
+# plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+# plt.subplot(322),plt.imshow(spectrum2, cmap = 'gray')
+# plt.title('fourier'), plt.xticks([]), plt.yticks([])
+# plt.subplot(323),plt.imshow(spectrum1, cmap = 'gray')
+# plt.title('Spectrum'), plt.xticks([]), plt.yticks([])
+# plt.subplot(324),plt.imshow(magnitude_spectrum1, cmap = 'gray')
+# plt.title('magnitude Spectrum1'), plt.xticks([]), plt.yticks([])
+# plt.subplot(325),plt.imshow(magnitude_spectrum2, cmap = 'gray')
+# plt.title('magnitude Spectrum2'), plt.xticks([]), plt.yticks([])
+# plt.show()
 
 # x = np.hstack([np.repeat(np.arange(0,50,2),10)[None,:], np.array([255]*6)[None,:]])
 # grad = np.tile(x,(256,1))/255
