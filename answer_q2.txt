@@ -1,0 +1,6 @@
+question 2:
+in both files we get a speeded up version of the original, in the file that was generated from the resize_spectogram
+function we get a faster but very not clean sound that is because we put waves on top of the other due to the
+compression to a shorter period of time and we don't correct the phases of the waves so waves will cancel each other.
+in the file that was generated using phase_vocoder we get a cleaner sound because we did the correction of the phases
+where waves will not cancel each other.

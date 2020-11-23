@@ -1,0 +1,4 @@
+question 1:
+in change_rate i get higher frequencies than from the original because when i multiply the rate, the frequencies of the
+waves get bigger and the duration speeds up, in change samples we convert to fourier signal and cut high frequencies
+(the edges of the fourier signal), that is why we get a speed up version without high frequencies.

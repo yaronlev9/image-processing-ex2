@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from skimage.color import rgb2gray
 import imageio
 import scipy.io.wavfile as sp
@@ -15,7 +16,7 @@ DIFF_ARR = np.array([0.5, 0, -0.5]).reshape(3, 1)
 
 def read_image(filename, representation):
     """
-    this function receives a name of an image file, if the image is colored turns it to grayscale if not
+    this function recieves a name of an image file, if the image is colored turns it to grayscale if not
     return the image with type float64
     :param filename: the name of the file
     :param representation: if 1 returns and image is colored returns a grayscale image if 2 returns the colored image
@@ -35,12 +36,6 @@ def read_image(filename, representation):
 
 
 def DFT(signal):
-    """
-    this function gets a signal with shape of 1d and calculates the dft of it
-    return the dft of the image with type complex128
-    :param signal: the data
-    :return: the dft of the signal
-    """
     n = signal.shape[0]
     signal = signal.T
     size = np.arange(n)
@@ -55,12 +50,6 @@ def DFT(signal):
 
 
 def IDFT(fourier_signal):
-    """
-    this function gets a fourier signal with shape of 1d and calculates the inverse dft of it
-    return the inverse dft of the fourier signal with type complex128
-    :param fourier_signal: the data
-    :return: the inverse dft of the fourier signal
-    """
     n = fourier_signal.shape[0]
     fourier_signal = fourier_signal.T
     size = np.arange(n)
@@ -75,59 +64,29 @@ def IDFT(fourier_signal):
 
 
 def DFT2(image):
-    """
-    this function gets an image with shape of 2d and calculates the 2d dft of it
-    return the 2d dft of the image with type complex128
-    :param image: the data
-    :return: the 2d dft of the image
-    """
     return two_d_fourier(image, DFT)
 
 
 def IDFT2(fourier_image):
-    """
-    this function gets a fourier image with shape of 2d and calculates the 2d inverse dft of it
-    return the 2d inverse dft of the image with type complex128
-    :param fourier_image: the data
-    :return: the 2d inverse dft of the image
-    """
     return two_d_fourier(fourier_image, IDFT)
 
 
 def two_d_fourier(image, func):
-    """
-    a helper func for the dft2 and idft2 gets a func which is dft or idft and executes it on every row and column
-    return the result of either the 2d dft or 2d idft
-    :param image: the data
-    :param func: the function to execute on the data
-    :return: the 2d inverse dft of the image or 2d dft
-    """
-    result = np.zeros(image.shape, dtype=np.complex128)
+    dft = np.zeros(image.shape, dtype=np.complex128)
     for i in range(image.shape[0]):
-        result[i] = func(image[i])
+        dft[i] = func(image[i])
     for i in range(image.shape[1]):
-        result[0:image.shape[0], i] = func(result[0:image.shape[0], i])
-    return result
+        dft[0:image.shape[0], i] = func(dft[0:image.shape[0], i])
+    return dft
 
 
 def change_rate(filename, ratio):
-    """
-    the function multiplies the rate by the ration and saves the result in a file
-    :param filename: the name of the wav file
-    :param ratio: the ratio to change the wav file
-    """
     rate, data = sp.read(filename)
     rate = int(rate * ratio)
     sp.write(CHANGE_RATE_FILE, rate, data)
 
 
 def change_samples(filename, ratio):
-    """
-    the function changes the data of the wav file to fit the new size of the data
-    :param filename: the name of the wav file
-    :param ratio: the ratio to change the wav file
-    :return the new data with the new size
-    """
     rate, data = sp.read(filename)
     data = resize(data, ratio)
     sp.write(CHANGE_SAMPLES_FILE, rate, data.astype(np.int16))
@@ -135,15 +94,9 @@ def change_samples(filename, ratio):
 
 
 def resize(data, ratio):
-    """
-    the function changes the data of the wav file to fit the new size of the data and returns it
-    :param data: the data
-    :param ratio: the ratio to change the wav file
-    :return the new data with the new size
-    """
     new_size = int(np.floor(len(data) / ratio))
     fourier_data = np.fft.fftshift(DFT(data))
-    if new_size > len(data):  # if new size is larger that the old we pad with zeros
+    if new_size > len(data):
         to_add = new_size - len(data)
         left_size = to_add // 2
         right_size = to_add - left_size
@@ -151,7 +104,7 @@ def resize(data, ratio):
         new_data = np.append(new_data, fourier_data)
         new_data = np.append(new_data, np.zeros(right_size))
         return np.real(IDFT(np.fft.ifftshift(new_data)))
-    to_del = len(data) - new_size  # if not we delete half from each side
+    to_del = len(data) - new_size
     left_index = to_del // 2
     right_index = to_del - left_index
     new_data = fourier_data[left_index: len(fourier_data) - right_index]
@@ -159,14 +112,8 @@ def resize(data, ratio):
 
 
 def resize_spectrogram(data, ratio):
-    """
-    the function changes the data of the wav file to fit the new size of the data using a spectogram
-    :param data: the data
-    :param ratio: the ratio to change the wav file
-    :return the new data with the new size
-    """
-    spectogram = stft(data)  # gets the spectogram
-    new_size = int(np.floor(spectogram.shape[1] / ratio))  # calculate the new data size
+    spectogram = stft(data)
+    new_size = int(np.floor(spectogram.shape[1] / ratio))
     new_spectogram = np.zeros((spectogram.shape[0], new_size))
     for row in range(len(spectogram)):
         new_spectogram[row] = resize(spectogram[row], ratio).T
@@ -174,33 +121,17 @@ def resize_spectrogram(data, ratio):
 
 
 def resize_vocoder(data, ratio):
-    """
-    the function changes the data of the wav file to fit the new size of the data using a spectogram and phase clean
-    :param data: the data
-    :param ratio: the ratio to change the wav file
-    :return the new data with the new size
-    """
     spectogram = stft(data)
     return istft(phase_vocoder(spectogram, ratio))
 
 
 def conv_der(im):
-    """
-    the function calculates the magnitude of the image using convolution derivatives
-    :param im: the image
-    :return the magnitude derivative of the image
-    """
-    diff_x = convolve2d(im, DIFF_ARR, mode="same", boundary="symm")  # calculates diff_x using the kernel DIFF_ARR
-    diff_y = convolve2d(im, DIFF_ARR.transpose(), mode="same", boundary="symm")# calculates diff_y using the kernel
+    diff_x = convolve2d(im, DIFF_ARR, mode="same", boundary="symm")
+    diff_y = convolve2d(im, DIFF_ARR.transpose(), mode="same", boundary="symm")
     return calc_magnitude(diff_x, diff_y)
 
 
 def fourier_der(im):
-    """
-    the function calculates the magnitude of the image using fourier derivatives
-    :param im: the image
-    :return the magnitude derivative of the image
-    """
     fourier = DFT2(im)
     diff_x = get_der(fourier)
     trans_fourier = fourier.transpose()
@@ -209,11 +140,6 @@ def fourier_der(im):
 
 
 def get_der(fourier):
-    """
-    calculates the diff by multiplying by index and idft2 the result
-    :param fourier: the data
-    :return the diff of the fourier signal
-    """
     n = fourier.shape[0]
     indexes = np.fft.ifftshift(np.arange(n) - n // 2).reshape(n, 1)
     diff = IDFT2(indexes * fourier)
@@ -222,12 +148,6 @@ def get_der(fourier):
 
 
 def calc_magnitude(diff_x, diff_y):
-    """
-    calculates the magnitude using the formula
-    :param diff_x: the derivative in x axis
-    :param diff_y: the derivative in y axis
-    :return the magnitude
-    """
     return np.sqrt(np.abs(diff_x) ** 2 + np.abs(diff_y) ** 2)
 
 
@@ -293,3 +213,60 @@ def phase_vocoder(spec, ratio):
         phase_acc += dphase
 
     return warped_spec
+
+
+#tests
+
+# im = read_image('externals/monkey.jpg', 1)
+# rate, data = sp.read('3.wav')
+# im = data
+# fft = np.fft.fft2(im)
+# temp_im = DFT2(im)
+# print(np.allclose(fft, temp_im))
+# ifft = np.fft.ifft2(fft)
+# idft = IDFT2(temp_im)
+# print(np.allclose(ifft, idft))
+# fshift = np.fft.fftshift(temp_im)
+# spectrum2 = 20*np.log(1 + np.abs(fshift))
+# new_im = DFT2(temp_im)
+# spectrum1 = 20*np.log(1 + np.abs(new_im))
+# magnitude_spectrum1 = conv_der(im)
+# magnitude_spectrum2 = fourier_der(im)
+
+# plot
+# plt.subplot(321),plt.imshow(im, cmap = 'gray')
+# plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+# plt.subplot(322),plt.imshow(spectrum2, cmap = 'gray')
+# plt.title('fourier'), plt.xticks([]), plt.yticks([])
+# plt.subplot(323),plt.imshow(spectrum1, cmap = 'gray')
+# plt.title('Spectrum'), plt.xticks([]), plt.yticks([])
+# plt.subplot(121),plt.imshow(magnitude_spectrum1, cmap = 'gray')
+# plt.title('magnitude Spectrum1'), plt.xticks([]), plt.yticks([])
+# plt.subplot(122),plt.imshow(magnitude_spectrum2, cmap = 'gray')
+# plt.title('magnitude Spectrum2'), plt.xticks([]), plt.yticks([])
+# plt.show()
+
+# im = grad
+# fft = np.fft.fft2(im)
+# dft = DFT2(im)
+# print("------------------------------------------------")
+# print(np.allclose(fft, dft))
+# ifft = np.fft.ifft2(fft)
+# print("-------------------------------------------")
+# idft = IDFT2(dft)
+# print(np.allclose(ifft, idft))
+
+#rates
+# change_rate('3.wav', 2)
+# change_samples('3.wav', 2)
+# rate, data = sp.read('3.wav')
+# data = resize_spectrogram(data, 2)
+# sp.write('change_spec.wav', rate, data.astype(np.int16))
+# #
+# rate, data = sp.read('3.wav')
+# data = resize_vocoder(data, 2)
+# sp.write('change_spec_phase.wav', rate, data.astype(np.int16))
+
+
+
+

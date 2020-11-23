@@ -1,0 +1,6 @@
+question 3:
+we get two different images, in the magnitude calculated using convolution we get more explicit lines representing
+the diff than the magnitude calculated using fourier transform.
+that is because convolution is defined as linear and continuous and the method using fourier transform is discrete
+and that is why when we calculate the derivative using fourier transform we lose some of the information and
+get less explicit lines in the magnitude.
