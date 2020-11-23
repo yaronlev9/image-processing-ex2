@@ -89,7 +89,7 @@ def change_rate(filename, ratio):
 def change_samples(filename, ratio):
     rate, data = sp.read(filename)
     data = resize(data, ratio)
-    sp.write(CHANGE_SAMPLES_FILE, rate, data.astype(np.int16))
+    sp.write(CHANGE_SAMPLES_FILE, rate, data)
     return data
 
 
